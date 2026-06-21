@@ -1,5 +1,5 @@
 import { BookOpen, Flag, RotateCcw, Target } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { BreakdownList } from '../components/BreakdownList';
 import { MetricCard } from '../components/MetricCard';
@@ -8,6 +8,8 @@ import { useExamSession } from '../hooks/useExamSession';
 import { isQuestionCorrect } from '../lib/exam';
 import { supabase } from '../lib/supabase';
 
+const savedAttemptKeys = new Set<string>();
+
 export function ResultsPage() {
   const navigate = useNavigate();
   const { results, setResults, resetExam } = useExamSession();
@@ -15,15 +17,23 @@ export function ResultsPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [emailStatus, setEmailStatus] = useState<string | null>(null);
   const [flagged, setFlagged] = useState<Record<string, boolean>>({});
+  const saveAttemptRef = useRef(false);
 
   useEffect(() => {
-    if (!results || results.attemptId || saving) {
+    const attemptKey = results ? `${results.user.id}:${results.startedAt}` : '';
+    if (!results || results.attemptId || saving || saveAttemptRef.current || savedAttemptKeys.has(attemptKey)) {
       return;
     }
 
+    saveAttemptRef.current = true;
+    savedAttemptKeys.add(attemptKey);
     setSaving(true);
     saveResults()
-      .catch((error: Error) => setSaveError(error.message))
+      .catch((error: Error) => {
+        savedAttemptKeys.delete(attemptKey);
+        saveAttemptRef.current = false;
+        setSaveError(error.message);
+      })
       .finally(() => setSaving(false));
 
     async function saveResults() {
