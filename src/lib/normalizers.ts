@@ -1,4 +1,5 @@
 import type { AppUser, Question, QuestionOption, QuestionType } from '../types';
+import { studySourcesForSkill } from './studySources';
 
 type Row = Record<string, unknown>;
 
@@ -106,7 +107,10 @@ export function normalizeQuestion(row: Row): Question {
     options,
     correctAnswerIds: questionType === 'true_false' && correctAnswers.length === 0 ? ['true'] : correctAnswers,
     explanation: textValue(row, ['explanation', 'rationale', 'answer_explanation'], ''),
-    studySources: arrayValue(value(row, ['study_sources', 'source_urls', 'sources', 'reference_urls', 'reference_url'])),
+    studySources: studySourcesForSkill(
+      textValue(row, ['skill', 'skill_name', 'subtopic'], 'General'),
+      arrayValue(value(row, ['study_sources', 'source_urls', 'sources', 'reference_urls', 'reference_url'])),
+    ),
     domain: textValue(row, ['domain', 'domain_name', 'topic'], 'Uncategorized'),
     skill: textValue(row, ['skill', 'skill_name', 'subtopic'], 'General'),
     difficulty: textValue(row, ['difficulty', 'difficulty_level'], 'medium'),

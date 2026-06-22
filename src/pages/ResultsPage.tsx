@@ -7,6 +7,7 @@ import { QuestionCard } from '../components/QuestionCard';
 import { useExamSession } from '../hooks/useExamSession';
 import { isQuestionCorrect } from '../lib/exam';
 import { supabase } from '../lib/supabase';
+import { sourceLabel } from '../lib/studySources';
 
 const savedAttemptKeys = new Set<string>();
 
@@ -199,7 +200,7 @@ export function ResultsPage() {
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">References connected to your missed questions.</p>
           <div className="mt-5 space-y-3">
             {focusAreas.flatMap((area) => [...area.sources].map((source) => ({ source, label: area.skill }))).slice(0, 8).map(({ source, label }) => (
-              <a key={source} href={source} target="_blank" rel="noreferrer" className="block rounded-md border border-slate-200 p-3 text-sm font-semibold text-teal-700 transition hover:border-teal-400 dark:border-slate-800 dark:text-teal-300">{label}: {source}</a>
+              <a key={`${label}-${source}`} href={source} target="_blank" rel="noreferrer" className="block rounded-md border border-slate-200 p-3 text-sm font-semibold text-teal-700 transition hover:border-teal-400 dark:border-slate-800 dark:text-teal-300">{label}: {sourceLabel(source)}</a>
             ))}
             {!focusAreas.some((area) => area.sources.size) ? <a href="https://learn.microsoft.com/training/browse/?products=power-bi" target="_blank" rel="noreferrer" className="block rounded-md border border-slate-200 p-4 text-sm font-semibold text-teal-700 hover:border-teal-400 dark:border-slate-800 dark:text-teal-300">Microsoft Learn: Power BI training</a> : null}
           </div>
