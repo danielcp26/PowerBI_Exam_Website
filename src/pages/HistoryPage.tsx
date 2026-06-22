@@ -2,6 +2,7 @@ import { BarChart3, History, Target } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { EmptyState } from '../components/EmptyState';
 import { MetricCard } from '../components/MetricCard';
+import { MistakeMap } from '../components/MistakeMap';
 import { useExamSession } from '../hooks/useExamSession';
 import { useSupabaseQuery } from '../hooks/useSupabaseQuery';
 import { sourceLabel, studySourcesForSkill } from '../lib/studySources';
@@ -97,7 +98,7 @@ export function HistoryPage() {
         totalAvailable: (questions as QuestionMeta[]).length,
         notYetResponded: Math.max(0, (questions as QuestionMeta[]).length - answeredIds.size),
         mostMissed: focusAreas[0] || null,
-        focusAreas: focusAreas.slice(0, 5),
+        focusAreas: focusAreas.slice(0, 10),
       });
       setAnalyticsLoading(false);
     }
@@ -148,7 +149,12 @@ export function HistoryPage() {
             </div>
           </div>
 
-          {analytics.focusAreas.length ? <div className="analytics-panel rounded-lg border border-slate-200 p-5 dark:border-slate-800"><h2 className="text-lg font-semibold">Recurring focus areas</h2><div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">{analytics.focusAreas.map((area) => <div key={`${area.domain}-${area.skill}`} className="rounded-md border border-slate-800 bg-slate-950/70 p-3"><p className="text-xs text-slate-500">{area.domain}</p><p className="mt-2 text-sm font-semibold leading-5">{area.skill}</p><p className="mt-3 text-sm text-rose-300">{area.missed} missed</p></div>)}</div></div> : null}
+          <MistakeMap
+            areas={analytics.focusAreas}
+            title="Historical mistake map"
+            description="Repeated misses across all saved attempts, grouped by category and subcategory."
+            emptyMessage="Complete an exam to build your historical mistake map."
+          />
         </div>
       ) : null}
 

@@ -2,6 +2,7 @@ import { BookOpen, Flag, RotateCcw, Target } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { BreakdownList } from '../components/BreakdownList';
+import { MistakeMap } from '../components/MistakeMap';
 import { MetricCard } from '../components/MetricCard';
 import { QuestionCard } from '../components/QuestionCard';
 import { useExamSession } from '../hooks/useExamSession';
@@ -178,6 +179,13 @@ export function ResultsPage() {
         <BreakdownList title="Skill Breakdown" items={results.skillBreakdown} />
         <BreakdownList title="Difficulty Breakdown" items={results.difficultyBreakdown} />
       </div>
+
+      <MistakeMap
+        areas={focusAreas}
+        title="Mistake map for this attempt"
+        description="Category totals with the contributing subcategories below each one."
+        emptyMessage="No incorrect answers in this attempt."
+      />
 
       <section className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="analytics-panel rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
