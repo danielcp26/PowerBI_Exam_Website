@@ -129,7 +129,7 @@ export function ResultsPage() {
     .filter((question) => !isQuestionCorrect(question, results.answers[question.id]))
     .map((question) => {
       const guide = studyGuideForQuestion(question.skill, question.prompt, question.explanation || '');
-      return { question, guide, sources: question.studySources.length ? question.studySources : guide.sources };
+      return { question, guide, sources: guide.sources };
     }), [results]);
 
   async function reportQuestion(questionId: string) {

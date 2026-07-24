@@ -19,6 +19,48 @@ const fallbackReference: StudyGuideReference = {
 
 const references: Array<{ match: string[]; reference: StudyGuideReference }> = [
   {
+    match: ['scheduled refresh', 'gateway cluster', 'gateways', 'gateway', 'refresh schedule'],
+    reference: {
+      guidePath: 'PL-300 study guide > Manage and secure Power BI > Create and manage workspaces and assets > Configure a semantic model scheduled refresh',
+      concept: 'Scheduled refresh keeps imported semantic models current, and on-premises sources usually need a configured gateway connection.',
+      correction: 'Check whether the data source needs a gateway, whether the model should use a gateway cluster for high availability, and where refresh is configured in semantic model settings.',
+      keywords: ['Scheduled refresh', 'Semantic model', 'On-premises data gateway', 'Gateway cluster'],
+      sources: [
+        `${microsoftLearn}/en-us/power-bi/connect-data/refresh-scheduled-refresh`,
+        `${microsoftLearn}/en-us/power-bi/connect-data/service-gateway-data-sources`,
+        pl300StudyGuide,
+      ],
+    },
+  },
+  {
+    match: ['workspace role', 'workspace roles', 'member role', 'contributor', 'viewer', 'admin role', 'manage workspaces and apps'],
+    reference: {
+      guidePath: 'PL-300 study guide > Manage and secure Power BI > Secure and govern Power BI items > Assign workspace roles',
+      concept: 'Workspace roles control what people can view, edit, share, publish, and manage inside a Power BI workspace.',
+      correction: 'Choose the least-privileged role that still allows the required action: Viewer for read-only, Contributor for editing content, Member for sharing/publishing app content, and Admin for full management.',
+      keywords: ['Workspace roles', 'Admin', 'Member', 'Contributor', 'Viewer'],
+      sources: [
+        `${microsoftLearn}/en-us/power-bi/collaborate-share/service-roles-new-workspaces`,
+        `${microsoftLearn}/en-us/power-bi/collaborate-share/service-give-access-new-workspaces`,
+        pl300StudyGuide,
+      ],
+    },
+  },
+  {
+    match: ['power bi app', 'publish app', 'configure app', 'update app', 'app access', 'audience'],
+    reference: {
+      guidePath: 'PL-300 study guide > Manage and secure Power BI > Create and manage workspaces and assets > Configure and update an app',
+      concept: 'Power BI apps package workspace content for distribution and can have app permissions that differ from workspace permissions.',
+      correction: 'Separate workspace collaboration from app distribution, then decide who should edit content versus who should consume the published app.',
+      keywords: ['Power BI apps', 'App permissions', 'Workspace app', 'Audience'],
+      sources: [
+        `${microsoftLearn}/en-us/power-bi/collaborate-share/service-create-distribute-apps`,
+        `${microsoftLearn}/en-us/power-bi/explore-reports/end-user-apps`,
+        pl300StudyGuide,
+      ],
+    },
+  },
+  {
     match: ['query folding', 'folding'],
     reference: {
       guidePath: 'PL-300 study guide > Prepare the data > Transform and load the data',
@@ -121,7 +163,7 @@ export function studyGuideForQuestion(skill: string, prompt = '', explanation = 
 
 export function topicConcept(skill: string, prompt = '', explanation = '') {
   return studyGuideForQuestion(skill, prompt, explanation);
-};
+}
 
 export function studySourcesForSkill(skill: string, suppliedSources: string[] = []) {
   if (suppliedSources.length) return suppliedSources;

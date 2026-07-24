@@ -8,7 +8,7 @@ import { useSupabaseQuery } from '../hooks/useSupabaseQuery';
 import { normalizeQuestion } from '../lib/normalizers';
 import { sourceLabel, studyGuideForQuestion } from '../lib/studySources';
 import { supabase } from '../lib/supabase';
-import type { Question } from '../types';
+import type { Question, QuestionOption } from '../types';
 
 interface AttemptRow {
   id: string;
@@ -53,10 +53,14 @@ interface TopicReadiness {
 interface MissedQuestion {
   id: string;
   prompt: string;
+  scenario: string;
+  options: QuestionOption[];
   domain: string;
   skill: string;
   difficulty: string;
   explanation: string;
+  selectedIds: string[];
+  correctIds: string[];
   selectedText: string;
   correctText: string;
   timesMissed: number;
@@ -116,6 +120,8 @@ export function HistoryPage() {
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [missFilter, setMissFilter] = useState('');
+  const [topicFilter, setTopicFilter] = useState('all');
+  const [difficultyFilter, setDifficultyFilter] = useState('all');
   const { data, loading, error } = useSupabaseQuery<AttemptRow>(async () => {
     let query = supabase.from('exam_attempts').select('*').order('completed_at', { ascending: false }).limit(100);
     if (selectedUser) query = query.eq('user_id', selectedUser.id);
@@ -208,10 +214,14 @@ export function HistoryPage() {
         missedByQuestion.set(question.id, {
           id: question.id,
           prompt: question.prompt,
+          scenario: question.scenario || '',
+          options: question.options,
           domain: question.domain,
           skill: question.skill,
           difficulty: String(question.difficulty),
           explanation: question.explanation || 'No explanation was provided for this question.',
+          selectedIds: selected,
+          correctIds: answer.correct_answers || question.correctAnswerIds,
           selectedText: optionText(question, selected),
           correctText: optionText(question, answer.correct_answers || question.correctAnswerIds),
           timesMissed: (existing?.timesMissed || 0) + 1,
@@ -221,7 +231,7 @@ export function HistoryPage() {
           concept: guide.concept,
           correction: guide.correction,
           keywords: guide.keywords,
-          sources: question.studySources.length ? question.studySources : guide.sources,
+          sources: guide.sources,
         });
       });
 
@@ -268,14 +278,24 @@ export function HistoryPage() {
   }, [data, selectedUser]);
 
   const trend = useMemo(() => [...data].reverse().slice(-12), [data]);
+  const missedTopics = useMemo(() => {
+    if (!analytics) return [];
+    return [...new Set(analytics.missedQuestions.map((question) => question.domain))].sort((a, b) => a.localeCompare(b));
+  }, [analytics]);
+  const missedDifficulties = useMemo(() => {
+    if (!analytics) return [];
+    return [...new Set(analytics.missedQuestions.map((question) => question.difficulty))].sort((a, b) => a.localeCompare(b));
+  }, [analytics]);
   const filteredMisses = useMemo(() => {
     if (!analytics) return [];
     const query = missFilter.trim().toLowerCase();
-    if (!query) return analytics.missedQuestions;
-    return analytics.missedQuestions.filter((question) => (
-      `${question.prompt} ${question.domain} ${question.skill} ${question.keywords.join(' ')}`.toLowerCase().includes(query)
-    ));
-  }, [analytics, missFilter]);
+    return analytics.missedQuestions.filter((question) => {
+      const matchesSearch = !query || `${question.prompt} ${question.scenario} ${question.domain} ${question.skill} ${question.difficulty} ${question.keywords.join(' ')}`.toLowerCase().includes(query);
+      const matchesTopic = topicFilter === 'all' || question.domain === topicFilter;
+      const matchesDifficulty = difficultyFilter === 'all' || question.difficulty === difficultyFilter;
+      return matchesSearch && matchesTopic && matchesDifficulty;
+    });
+  }, [analytics, difficultyFilter, missFilter, topicFilter]);
 
   return (
     <section className="space-y-8">
@@ -372,6 +392,39 @@ export function HistoryPage() {
               </label>
             </div>
 
+            <div className="mt-5 grid gap-3 md:grid-cols-[1fr_240px_180px]">
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Topic</span>
+                <select
+                  value={topicFilter}
+                  onChange={(event) => setTopicFilter(event.target.value)}
+                  className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950/70 px-3 py-3 text-sm text-slate-100 outline-none focus:border-teal-400"
+                >
+                  <option value="all">All topics ({analytics.missedQuestions.length})</option>
+                  {missedTopics.map((topic) => (
+                    <option key={topic} value={topic}>{topic}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Difficulty</span>
+                <select
+                  value={difficultyFilter}
+                  onChange={(event) => setDifficultyFilter(event.target.value)}
+                  className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950/70 px-3 py-3 text-sm text-slate-100 outline-none focus:border-teal-400"
+                >
+                  <option value="all">All difficulties</option>
+                  {missedDifficulties.map((difficulty) => (
+                    <option key={difficulty} value={difficulty}>{difficulty}</option>
+                  ))}
+                </select>
+              </label>
+              <div className="rounded-md border border-slate-800 bg-slate-950/60 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Showing</p>
+                <p className="mt-1 text-2xl font-semibold">{filteredMisses.length}</p>
+              </div>
+            </div>
+
             <div className="mt-5 space-y-4">
               {filteredMisses.map((question) => (
                 <article key={question.id} className="rounded-lg border border-slate-800 bg-slate-950/50 p-5">
@@ -380,7 +433,37 @@ export function HistoryPage() {
                     <span className="ml-auto rounded-md bg-rose-500/15 px-2 py-1 text-rose-200">{question.timesMissed} missed</span>
                     {question.recovered ? <span className="inline-flex items-center gap-1 rounded-md bg-teal-500/15 px-2 py-1 text-teal-200"><CheckCircle2 className="h-3 w-3" /> Later corrected</span> : null}
                   </div>
+                  {question.scenario ? (
+                    <div className="mt-4 rounded-md border border-slate-800 bg-slate-900/60 p-4 text-sm leading-6 text-slate-300">
+                      {question.scenario}
+                    </div>
+                  ) : null}
                   <h3 className="mt-4 text-lg font-semibold leading-7">{question.prompt}</h3>
+                  {question.options.length ? (
+                    <div className="mt-4 space-y-2">
+                      {question.options.map((option) => {
+                        const selected = question.selectedIds.includes(option.id);
+                        const correct = question.correctIds.includes(option.id);
+                        const optionClass = correct
+                          ? 'border-teal-500/40 bg-teal-950/20 text-teal-100'
+                          : selected
+                            ? 'border-rose-500/40 bg-rose-950/20 text-rose-100'
+                            : 'border-slate-800 bg-slate-950/40 text-slate-300';
+
+                        return (
+                          <div key={option.id} className={`rounded-md border p-3 text-sm ${optionClass}`}>
+                            <div className="flex items-start gap-3">
+                              <span className="shrink-0 font-semibold">{option.label}.</span>
+                              <span className="leading-6">{option.text}</span>
+                              <span className="ml-auto shrink-0 text-xs font-semibold uppercase tracking-wide">
+                                {correct ? 'Correct' : selected ? 'Selected' : ''}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : null}
                   <div className="mt-4 grid gap-3 lg:grid-cols-2">
                     <div className="rounded-md bg-rose-950/20 p-3 text-sm"><p className="font-semibold text-rose-200">Your last missed answer</p><p className="mt-1 text-slate-300">{question.selectedText}</p></div>
                     <div className="rounded-md bg-teal-950/20 p-3 text-sm"><p className="font-semibold text-teal-200">Correct answer</p><p className="mt-1 text-slate-300">{question.correctText}</p></div>
@@ -397,7 +480,7 @@ export function HistoryPage() {
                   </div>
                 </article>
               ))}
-              {!filteredMisses.length ? <p className="rounded-md bg-teal-950/20 p-4 text-sm text-teal-100">No missed questions match this view.</p> : null}
+              {!filteredMisses.length ? <p className="rounded-md bg-teal-950/20 p-4 text-sm text-teal-100">No missed questions match these filters.</p> : null}
             </div>
           </section>
         </>
