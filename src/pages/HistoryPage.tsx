@@ -48,6 +48,8 @@ interface TopicReadiness {
   coverage: number;
   readiness: number;
   status: string;
+  source: string;
+  sourceLabel: string;
 }
 
 interface MissedQuestion {
@@ -177,6 +179,8 @@ export function HistoryPage() {
           coverage: 0,
           readiness: 0,
           status: 'Unseen',
+          source: studyGuideForQuestion(question.skill).sources[0],
+          sourceLabel: sourceLabel(studyGuideForQuestion(question.skill).sources[0]),
           seenIds: new Set<string>(),
         };
         current.poolTotal += 1;
@@ -352,7 +356,7 @@ export function HistoryPage() {
             <div className="mt-5 overflow-hidden rounded-lg border border-slate-800">
               <table className="w-full text-left text-sm">
                 <thead className="bg-slate-950/70 text-xs uppercase tracking-wide text-slate-400">
-                  <tr><th className="px-4 py-3">Topic</th><th className="px-4 py-3">Accuracy</th><th className="px-4 py-3">Coverage</th><th className="px-4 py-3">Readiness</th><th className="px-4 py-3">Status</th></tr>
+                  <tr><th className="px-4 py-3">Topic</th><th className="px-4 py-3">Accuracy</th><th className="px-4 py-3">Coverage</th><th className="px-4 py-3">Readiness</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Study</th></tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800">
                   {analytics.topicReadiness.map((topic) => (
@@ -362,6 +366,18 @@ export function HistoryPage() {
                       <td className="px-4 py-4">{topic.uniqueSeen}/{topic.poolTotal} · {topic.coverage}%</td>
                       <td className="px-4 py-4"><div className="h-2 w-28 overflow-hidden rounded-full bg-slate-800"><div className="h-full rounded-full bg-teal-500" style={{ width: `${topic.readiness}%` }} /></div><span className="mt-1 block text-xs text-slate-400">{topic.readiness}%</span></td>
                       <td className="px-4 py-4"><span className={`rounded-md px-2 py-1 text-xs font-semibold ${statusClass(topic.status)}`}>{topic.status}</span></td>
+                      <td className="px-4 py-4">
+                        <a
+                          href={topic.source}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 rounded-md border border-teal-400/30 bg-teal-500/10 px-3 py-2 text-xs font-semibold text-teal-200 transition hover:border-teal-300 hover:bg-teal-500/15"
+                          title={topic.sourceLabel}
+                        >
+                          <BookOpen className="h-4 w-4" />
+                          Study
+                        </a>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

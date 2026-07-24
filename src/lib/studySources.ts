@@ -19,6 +19,102 @@ const fallbackReference: StudyGuideReference = {
 
 const references: Array<{ match: string[]; reference: StudyGuideReference }> = [
   {
+    match: ['filters and slicers', 'configure filters', 'slicers', 'slicer', 'filter pane', 'filters'],
+    reference: {
+      guidePath: 'PL-300 study guide > Visualize and analyze the data > Create reports > Configure filters and slicers',
+      concept: 'Filters and slicers narrow report data so users can focus on the exact segment they need to analyze.',
+      correction: 'Decide whether the requirement belongs in the Filters pane, a slicer visual, visual interactions, sync slicers, or a relative date filter.',
+      keywords: ['Slicers', 'Filters pane', 'Visual interactions', 'Relative date slicer'],
+      sources: [
+        `${microsoftLearn}/en-us/power-bi/visuals/power-bi-visualization-slicers`,
+        `${microsoftLearn}/en-us/power-bi/visuals/power-bi-visualization-slicer-visual`,
+        pl300StudyGuide,
+      ],
+    },
+  },
+  {
+    match: ['optimize report performance', 'report performance', 'usability', 'query reduction', 'performance'],
+    reference: {
+      guidePath: 'PL-300 study guide > Visualize and analyze the data > Create reports > Optimize report performance and usability',
+      concept: 'Report performance depends on model design, DAX complexity, visual count, query behavior, and user interaction patterns.',
+      correction: 'Look for unnecessary visuals, expensive measures, DirectQuery latency, excessive cross-highlighting, and opportunities to use query reduction.',
+      keywords: ['Report performance', 'Query reduction', 'Visual optimization', 'Usability'],
+      sources: [
+        `${microsoftLearn}/en-us/power-bi/guidance/power-bi-optimization`,
+        `${microsoftLearn}/en-us/power-bi/connect-data/desktop-directquery-about`,
+        pl300StudyGuide,
+      ],
+    },
+  },
+  {
+    match: ['deployment pipeline', 'deployment pipelines', 'deploy content', 'content lifecycle'],
+    reference: {
+      guidePath: 'PL-300 study guide > Manage and secure Power BI > Create and manage workspaces and assets > Manage deployment pipelines',
+      concept: 'Deployment pipelines support controlled promotion of Power BI content across development, test, and production stages.',
+      correction: 'Separate content lifecycle concerns from report authoring, then choose the deployment method that protects production content.',
+      keywords: ['Deployment pipelines', 'Content lifecycle', 'Workspace stages', 'Deploy content'],
+      sources: [
+        `${microsoftLearn}/en-us/power-bi/guidance/powerbi-implementation-planning-content-lifecycle-management-deploy`,
+        pl300StudyGuide,
+      ],
+    },
+  },
+  {
+    match: ['manage semantic models', 'semantic models', 'semantic model', 'dataset permissions'],
+    reference: {
+      guidePath: 'PL-300 study guide > Manage and secure Power BI > Create and manage workspaces and assets > Manage semantic models',
+      concept: 'Semantic models define reusable Power BI data, relationships, calculations, permissions, refresh, and connectivity behavior.',
+      correction: 'Check whether the question is about model editing, permissions, refresh, gateway settings, endorsement, or downstream report access.',
+      keywords: ['Semantic model', 'Model permissions', 'Refresh', 'Relationships'],
+      sources: [
+        `${microsoftLearn}/en-us/power-bi/transform-model/service-edit-data-models`,
+        `${microsoftLearn}/en-us/power-bi/connect-data/service-datasets-permissions`,
+        pl300StudyGuide,
+      ],
+    },
+  },
+  {
+    match: ['analyze data with power bi features', 'analyze data', 'advanced analytics', 'quick insights', 'ai insights', 'key influencers'],
+    reference: {
+      guidePath: 'PL-300 study guide > Visualize and analyze the data > Enhance reports for usability and storytelling > Analyze data with Power BI features',
+      concept: 'Power BI analysis features help explain trends, outliers, drivers, clusters, forecasts, and narrative insights.',
+      correction: 'Match the question to the right built-in analytic feature, such as key influencers, decomposition tree, anomaly detection, quick insights, or AI visuals.',
+      keywords: ['Key influencers', 'Quick insights', 'Analyze feature', 'AI visuals'],
+      sources: [
+        `${microsoftLearn}/en-us/training/modules/perform-analytics-power-bi/`,
+        `${microsoftLearn}/en-us/power-bi/visuals/power-bi-visualization-influencers`,
+        pl300StudyGuide,
+      ],
+    },
+  },
+  {
+    match: ['combine files', 'combine binaries', 'folder connector'],
+    reference: {
+      guidePath: 'PL-300 study guide > Prepare the data > Transform and load the data > Combine files',
+      concept: 'Power Query can combine multiple files with the same structure from a folder or storage source into one query.',
+      correction: 'Confirm the files share a compatible schema, then use the combine files experience and review the generated sample file transformations.',
+      keywords: ['Combine files', 'Folder connector', 'Sample file', 'Power Query'],
+      sources: [
+        `${microsoftLearn}/en-us/power-query/combine-files-overview`,
+        `${microsoftLearn}/en-us/power-query/`,
+        pl300StudyGuide,
+      ],
+    },
+  },
+  {
+    match: ['profile data', 'data profiling', 'column quality', 'column distribution', 'column profile'],
+    reference: {
+      guidePath: 'PL-300 study guide > Prepare the data > Profile and clean the data',
+      concept: 'Data profiling helps identify quality issues, value distributions, errors, nulls, and unexpected patterns before loading data.',
+      correction: 'Use column quality, distribution, and profile results to decide which cleaning or transformation step is needed.',
+      keywords: ['Data profiling', 'Column quality', 'Column distribution', 'Column profile'],
+      sources: [
+        `${microsoftLearn}/en-us/power-query/data-profiling-tools`,
+        pl300StudyGuide,
+      ],
+    },
+  },
+  {
     match: ['scheduled refresh', 'gateway cluster', 'gateways', 'gateway', 'refresh schedule'],
     reference: {
       guidePath: 'PL-300 study guide > Manage and secure Power BI > Create and manage workspaces and assets > Configure a semantic model scheduled refresh',
