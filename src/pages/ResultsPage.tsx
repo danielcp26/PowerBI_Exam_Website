@@ -8,7 +8,7 @@ import { QuestionCard } from '../components/QuestionCard';
 import { useExamSession } from '../hooks/useExamSession';
 import { isQuestionCorrect } from '../lib/exam';
 import { supabase } from '../lib/supabase';
-import { sourceLabel } from '../lib/studySources';
+import { sourceLabel, studyGuideForQuestion } from '../lib/studySources';
 
 const savedAttemptKeys = new Set<string>();
 
@@ -125,6 +125,12 @@ export function ResultsPage() {
     });
     return [...groups.values()].sort((a, b) => b.missed - a.missed);
   }, [results]);
+  const missedGuidance = useMemo(() => results.questions
+    .filter((question) => !isQuestionCorrect(question, results.answers[question.id]))
+    .map((question) => {
+      const guide = studyGuideForQuestion(question.skill, question.prompt, question.explanation || '');
+      return { question, guide, sources: question.studySources.length ? question.studySources : guide.sources };
+    }), [results]);
 
   async function reportQuestion(questionId: string) {
     const { error } = await supabase.from('question_flags').insert({
@@ -212,6 +218,33 @@ export function ResultsPage() {
             ))}
             {!focusAreas.some((area) => area.sources.size) ? <a href="https://learn.microsoft.com/training/browse/?products=power-bi" target="_blank" rel="noreferrer" className="block rounded-md border border-slate-200 p-4 text-sm font-semibold text-teal-700 hover:border-teal-400 dark:border-slate-800 dark:text-teal-300">Microsoft Learn: Power BI training</a> : null}
           </div>
+        </div>
+      </section>
+
+      <section className="analytics-panel rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex items-center gap-2"><BookOpen className="h-5 w-5 text-teal-400" /><h2 className="text-xl font-semibold">What to study from this attempt</h2></div>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Each missed question is mapped to the closest PL-300 study guide area and a Microsoft Learn resource.</p>
+        <div className="mt-5 grid gap-4 lg:grid-cols-2">
+          {missedGuidance.map(({ question, guide, sources }) => (
+            <article key={question.id} className="rounded-lg border border-slate-800 bg-slate-950/50 p-5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{question.domain} · {question.skill}</p>
+              <h3 className="mt-3 text-base font-semibold leading-6">{question.prompt}</h3>
+              <div className="mt-4 rounded-md border border-slate-800 bg-slate-900/60 p-4">
+                <p className="text-sm font-semibold text-slate-200">{guide.guidePath}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-400">{guide.concept}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-400">{guide.correction}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {guide.keywords.map((keyword) => <span key={keyword} className="rounded-md bg-slate-800 px-2 py-1 text-xs text-slate-300">{keyword}</span>)}
+                </div>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  {sources.map((source) => (
+                    <a key={source} href={source} target="_blank" rel="noreferrer" className="text-sm font-semibold text-teal-300 hover:underline">{sourceLabel(source)}</a>
+                  ))}
+                </div>
+              </div>
+            </article>
+          ))}
+          {!missedGuidance.length ? <p className="rounded-md bg-teal-950/20 p-4 text-sm text-teal-100">No missed questions in this attempt. Keep building coverage with another mode.</p> : null}
         </div>
       </section>
 

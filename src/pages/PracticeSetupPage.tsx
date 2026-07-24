@@ -1,4 +1,4 @@
-import { AlertTriangle, Play } from 'lucide-react';
+import { AlertTriangle, Layers3, Play, Target } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useExamSession } from '../hooks/useExamSession';
@@ -14,6 +14,8 @@ export function PracticeSetupPage() {
   const navigate = useNavigate();
   const { selectedUser, setSession, setResults } = useExamSession();
   const [mode, setMode] = useState<ExamMode>(15);
+  const [examScope, setExamScope] = useState<'balanced' | 'topic'>('balanced');
+  const [selectedTopic, setSelectedTopic] = useState('');
   const { data: questions, loading, error } = useSupabaseQuery<Question>(async () => {
     const { data, error: queryError } = await supabase.from('v_exam_ready_questions').select('*');
     return { data: (data || []).map(normalizeQuestion), error: queryError };
@@ -32,8 +34,14 @@ export function PracticeSetupPage() {
       .sort((a, b) => b.total - a.total || a.label.localeCompare(b.label));
   }, [questions]);
 
-  const examQuestions = useMemo(() => buildExamQuestions(questions, mode), [mode, questions]);
-  const notEnough = questions.length > 0 && questions.length < mode;
+  const activeTopic = selectedTopic || topicCounts[0]?.label || '';
+  const availableQuestions = useMemo(() => (
+    examScope === 'topic' && activeTopic
+      ? questions.filter((question) => (question.domain || 'Uncategorized') === activeTopic)
+      : questions
+  ), [activeTopic, examScope, questions]);
+  const examQuestions = useMemo(() => buildExamQuestions(availableQuestions, mode), [availableQuestions, mode]);
+  const notEnough = availableQuestions.length > 0 && availableQuestions.length < mode;
 
   if (!selectedUser) {
     return <Navigate to="/" replace />;
@@ -59,7 +67,51 @@ export function PracticeSetupPage() {
     <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
       <section className="app-panel rounded-lg border border-slate-200 bg-white p-6 shadow-soft dark:border-slate-800 dark:bg-slate-900">
         <h1 className="text-3xl font-semibold tracking-tight">Practice setup</h1>
-        <p className="mt-2 text-slate-600 dark:text-slate-400">Choose an exam length, then the arena will balance by topic and difficulty.</p>
+        <p className="mt-2 text-slate-600 dark:text-slate-400">Choose a balanced exam or drill one PL-300 topic at a time.</p>
+
+        <div className="mt-8 grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => setExamScope('balanced')}
+            className={[
+              'rounded-lg border p-5 text-left transition',
+              examScope === 'balanced'
+                ? 'border-teal-300 bg-teal-500/15 text-white shadow-[0_0_24px_rgba(45,212,191,0.12)]'
+                : 'border-slate-200 bg-slate-50 hover:border-teal-400 dark:border-slate-800 dark:bg-slate-950/40',
+            ].join(' ')}
+          >
+            <span className="flex items-center gap-2 text-lg font-semibold"><Layers3 className="h-5 w-5 text-teal-300" /> Balanced exam</span>
+            <span className="mt-2 block text-sm text-slate-600 dark:text-slate-400">Mixes domains and difficulty like the full simulator.</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setExamScope('topic')}
+            className={[
+              'rounded-lg border p-5 text-left transition',
+              examScope === 'topic'
+                ? 'border-teal-300 bg-teal-500/15 text-white shadow-[0_0_24px_rgba(45,212,191,0.12)]'
+                : 'border-slate-200 bg-slate-50 hover:border-teal-400 dark:border-slate-800 dark:bg-slate-950/40',
+            ].join(' ')}
+          >
+            <span className="flex items-center gap-2 text-lg font-semibold"><Target className="h-5 w-5 text-teal-300" /> Topic drill</span>
+            <span className="mt-2 block text-sm text-slate-600 dark:text-slate-400">Builds a 15, 30, or 50 question exam from one domain.</span>
+          </button>
+        </div>
+
+        {examScope === 'topic' ? (
+          <label className="mt-5 block">
+            <span className="text-sm font-semibold">Topic</span>
+            <select
+              value={activeTopic}
+              onChange={(event) => setSelectedTopic(event.target.value)}
+              className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950/70 px-4 py-3 text-slate-100 outline-none transition focus:border-teal-400"
+            >
+              {topicCounts.map((topic) => (
+                <option key={topic.label} value={topic.label}>{topic.label} ({topic.total})</option>
+              ))}
+            </select>
+          </label>
+        ) : null}
 
         <div className="mt-8 grid gap-3 sm:grid-cols-3">
           {modes.map((item) => (
@@ -84,7 +136,8 @@ export function PracticeSetupPage() {
           <div className="mt-6 flex gap-3 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
             <AlertTriangle className="h-5 w-5 shrink-0" />
             <span>
-              Only {questions.length} ready questions are available for a {mode}-question exam. You can still start with all available questions for testing.
+              Only {availableQuestions.length} ready questions are available for this {mode}-question exam. You can still start with all available questions for testing.
+              {examScope === 'topic' ? ` The selected topic has ${availableQuestions.length} ready questions.` : ''}
             </span>
           </div>
         ) : null}
@@ -107,7 +160,11 @@ export function PracticeSetupPage() {
         <dl className="mt-4 space-y-4 text-sm">
           <div className="flex items-center justify-between">
             <dt className="text-slate-600 dark:text-slate-400">Ready questions</dt>
-            <dd className="font-semibold">{loading ? '...' : questions.length}</dd>
+            <dd className="font-semibold">{loading ? '...' : availableQuestions.length}</dd>
+          </div>
+          <div className="flex items-center justify-between">
+            <dt className="text-slate-600 dark:text-slate-400">Exam type</dt>
+            <dd className="font-semibold">{examScope === 'topic' ? activeTopic : 'Balanced'}</dd>
           </div>
           <div className="flex items-center justify-between">
             <dt className="text-slate-600 dark:text-slate-400">Selected length</dt>
